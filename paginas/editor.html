@@ -230,6 +230,14 @@ html,body{margin:0;padding:0;background:#050608}
   #se .cena{position:relative;opacity:1;visibility:visible}#se .car{min-height:0}#se .pontos{display:none}
   #se .chat .msg{width:auto;border:0}#se .chat .resp{width:80%}#se .chat .ficha,#se .inst{opacity:1;transform:none}
 }
+
+/* o tema do WordPress força outra fonte nos títulos: aqui manda a identidade */
+#se,#se p,#se a,#se li,#se span,#se small,#se summary,#se b,#se div{font-family:var(--body)!important}
+#se h1,#se h2,#se h3,#se .t,#se .cena h3,#se .passo h3,#se .preco .valor,#se .cel .top{font-family:var(--title)!important;font-weight:400!important}
+#se .preco .valor small{font-family:var(--body)!important}
+/* sai da caixa do Elementor e ocupa a tela toda */
+html,body{overflow-x:hidden}
+#se{width:100vw;max-width:100vw;margin-left:calc(50% - 50vw)!important;margin-right:calc(50% - 50vw)!important}
 </style>
 </head>
 <body>
