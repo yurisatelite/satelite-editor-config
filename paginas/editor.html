@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satélite Editor — peça ao Claude e ele edita o seu vídeo</title>
+<meta name="description" content="Corta silêncio e take repetido, põe legenda palavra por palavra e entrega o vídeo vertical pronto. Roda no seu computador, dentro do Claude Desktop.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Satélite Editor">
+<meta property="og:description" content="Peça pro Claude: “edita pra mim o vídeo”. Ele corta, legenda e renderiza no seu computador.">
+<meta property="og:url" content="https://yurisatelite.com/editor">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   SATÉLITE EDITOR — yurisatelite.com/editor  (v2, 19/10/2026)
+   Identidade: E:\Claude\SATELITE EDITOR\0 - ID VISUAL
+   Tudo que mexe é CSS (o Perfmatters atrasa scripts). Sem script a página
+   fica igual; o script do fim só destaca o sistema e libera o Mac.
+   ═══════════════════════════════════════════════════════════ */
+html,body{margin:0;padding:0;background:#050608}
+#se{
+  --ink:#050608;--paper:#F4F6F8;--mute:#9AA4B2;--line:#ffffff1a;--card:#0a0e15;
+  --cyan:#00E5FF;--blue:#0A6CFF;--deep:#0A1FD6;
+  --grad:linear-gradient(135deg,#00E5FF 0%,#0A6CFF 55%,#0A1FD6 100%);
+  --btn:linear-gradient(135deg,#0A6CFF 0%,#0A1FD6 100%);
+  --title:'Anton',Impact,sans-serif;--body:'DM Sans',system-ui,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  position:relative;overflow:hidden;background:var(--ink);color:var(--paper);
+  font-family:var(--body);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;
+}
+#se *,#se *::before,#se *::after{box-sizing:border-box}
+#se h1,#se h2,#se h3,#se p,#se ul,#se ol,#se li,#se figure{margin:0;padding:0}
+#se ul,#se ol{list-style:none}
+#se a{text-decoration:none;color:inherit}
+#se img{max-width:100%;border:none;border-radius:0;display:block}
+#se :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+#se .wrap{width:min(1120px,100% - 32px);margin-inline:auto;position:relative;z-index:2}
+#se .t{font-family:var(--title);font-weight:400;text-transform:uppercase;letter-spacing:.005em;line-height:.95}
+#se .eyebrow{font-weight:700;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan)}
+#se section{padding:clamp(56px,8vw,104px) 0;position:relative}
+#se section h2{font-size:clamp(34px,5vw,58px);margin:12px 0 12px}
+#se .sub{color:#C6CEDA;max-width:38em;font-size:18px}
+#se .center{text-align:center}#se .center .sub{margin-inline:auto}
+
+/* entrada suave ao rolar (navegadores novos; nos outros já aparece pronto) */
+@supports (animation-timeline:view()){
+  #se .rv{animation:se-rv linear both;animation-timeline:view();animation-range:entry 0% entry 42%}
+  @keyframes se-rv{from{opacity:0;transform:translateY(34px) scale(.985)}to{opacity:1;transform:none}}
+}
+
+/* botões */
+#se .btn{display:inline-flex;align-items:center;gap:12px;padding:15px 22px;border-radius:14px;font-weight:700;font-size:16px;line-height:1.15;
+  color:#fff;background:var(--btn);border:1px solid #ffffff2e;box-shadow:0 10px 30px -12px #0A6CFF;
+  transition:transform .25s var(--ease),box-shadow .25s,filter .2s;position:relative;overflow:hidden}
+#se .btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#ffffff40 50%,transparent 70%);transform:translateX(-120%);transition:transform .7s var(--ease)}
+#se .btn:hover{transform:translateY(-2px);box-shadow:0 18px 40px -14px #0A6CFF;filter:brightness(1.08)}
+#se .btn:hover::after{transform:translateX(120%)}
+#se .btn:active{transform:scale(.98)}
+#se .btn small{display:block;font-weight:500;font-size:12.5px;opacity:.82;margin-top:2px}
+#se .btn svg{width:24px;height:24px;flex:none;fill:currentColor}
+#se .btn.sec{background:#ffffff0a;box-shadow:none;border-color:#ffffff33}
+#se .btn.sec:hover{border-color:var(--cyan)}
+#se .mini{font-size:14px;color:var(--mute)}#se .mini b{color:var(--paper);font-weight:600}
+#se .so-mac,#se .btn.mac{display:none}
+#se.mac-on .so-mac{display:block}#se.mac-on span.so-mac{display:inline}#se.mac-on .btn.mac{display:inline-flex}
+#se.mac-on.is-mac .btn.win,#se.is-win .btn.mac{background:#ffffff0a;box-shadow:none;border-color:#ffffff33}
+
+/* topo */
+#se .nav{display:flex;align-items:center;justify-content:space-between;padding:24px 0}
+#se .nav svg{height:30px;width:auto;display:block}
+#se .nav .voltar{font-size:14px;font-weight:500;color:var(--mute);transition:color .2s}
+#se .nav .voltar:hover{color:var(--paper)}
+
+/* hero */
+#se .hero{position:relative;padding:clamp(16px,4vw,48px) 0 clamp(56px,8vw,96px)}
+#se .hero::before{content:"";position:absolute;z-index:0;width:min(820px,95vw);aspect-ratio:1;right:-14%;top:-14%;border-radius:50%;
+  background:radial-gradient(closest-side,#0A6CFF55,#0A1FD622 55%,transparent 72%);animation:se-breathe 9s ease-in-out infinite}
+@keyframes se-breathe{50%{transform:scale(1.08) translate(-2%,3%);opacity:.8}}
+#se .hero-grid{display:grid;grid-template-columns:1fr 1.08fr;gap:clamp(28px,5vw,60px);align-items:center}
+#se .hero h1{font-size:clamp(48px,8vw,100px);margin:14px 0 20px}
+#se .hero h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+#se .lede{font-size:clamp(17px,1.8vw,20px);color:#DCE2EA;max-width:32em}
+#se .baixar{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0 12px}
+#se .shot{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:#0b0f16;
+  box-shadow:0 40px 80px -30px #000,0 0 0 1px #00E5FF14,0 0 70px -24px #0A6CFFaa;transform:perspective(1600px) rotateY(-4deg);transition:transform .8s var(--ease)}
+#se .shot:hover{transform:perspective(1400px) rotateY(0) rotateX(0) scale(1.015)}
+#se .shot::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 40%,#ffffff12 50%,transparent 60%);transform:translateX(-100%);animation:se-shine 7s 1.5s ease-in-out infinite;pointer-events:none}
+@keyframes se-shine{0%,70%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* ── 4 passos ── */
+#se .passos{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:40px;counter-reset:p}
+#se .passo{counter-increment:p;position:relative;display:flex;flex-direction:column;gap:14px;padding:18px;border:1px solid var(--line);border-radius:20px;background:var(--card);
+  transition:transform .35s var(--ease),border-color .3s,box-shadow .35s}
+#se .passo:hover{transform:translateY(-6px);border-color:#00E5FF55;box-shadow:0 24px 50px -28px #0A6CFF}
+#se .passo .vis{height:150px;border-radius:14px;background:radial-gradient(ellipse at 50% 40%,#0b2a4a,#06090e 70%);border:1px solid #ffffff10;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#se .passo h3{font-family:var(--title);font-weight:400;text-transform:uppercase;font-size:24px;line-height:1;display:flex;gap:10px;align-items:baseline}
+#se .passo h3::before{content:counter(p);font-size:15px;color:var(--cyan);letter-spacing:.1em}
+#se .passo p{color:#AEB7C4;font-size:15px;line-height:1.45}
+#se .passo .acao{margin-top:auto}
+#se .passo .btn{padding:11px 16px;font-size:14.5px;border-radius:11px;width:100%;justify-content:center}
+#se .passo .btn svg{width:18px;height:18px}
+#se .passo a.link{color:var(--cyan);font-weight:600;border-bottom:1px solid #00E5FF55}
+
+/* visual 1: app do Claude (genérico) */
+#se .app{width:120px;height:86px;border-radius:12px;background:#262624;border:1px solid #3a3936;box-shadow:0 14px 30px -10px #000;position:relative;animation:se-float 5s ease-in-out infinite}
+#se .app::before{content:"";position:absolute;left:10px;top:9px;width:30px;height:6px;border-radius:3px;background:radial-gradient(circle,#ff5f57 2.4px,transparent 2.6px) 0 0/10px 6px repeat-x}
+#se .app i{position:absolute;left:12px;right:12px;height:7px;border-radius:4px;background:#3a3936}
+#se .app i:nth-child(1){top:28px;right:46px}#se .app i:nth-child(2){top:42px}#se .app i:nth-child(3){top:56px;right:30px;background:#d97757aa}
+#se .down{position:absolute;right:28px;bottom:16px;width:34px;height:34px;border-radius:50%;background:var(--btn);display:grid;place-items:center;box-shadow:0 6px 16px -4px #0A6CFF;animation:se-bob 1.8s ease-in-out infinite}
+#se .down svg{width:16px;height:16px;fill:#fff}
+@keyframes se-float{50%{transform:translateY(-6px)}}
+@keyframes se-bob{50%{transform:translateY(4px)}}
+/* visual 2: símbolo do editor girando a esfera */
+#se .vis .sym{width:96px;height:96px;filter:drop-shadow(0 0 22px #0A6CFF99)}
+/* visual 3: arquivo + dois cliques + janela instalar */
+#se .arq{width:62px;height:76px;border-radius:8px;background:linear-gradient(160deg,#16324f,#0a1626);border:1px solid #00E5FF55;position:relative;display:grid;place-items:center;animation:se-pick 4s ease-in-out infinite}
+#se .vis .arq .sym{width:36px;height:36px;filter:none}
+#se .arq::after{content:".mcpb";position:absolute;bottom:-20px;font-size:11px;color:var(--mute);font-weight:600}
+#se .clk{position:absolute;left:58%;top:52%;width:12px;height:12px;border-radius:50%;border:2px solid var(--cyan);opacity:0;animation:se-clk 4s ease-out infinite}
+#se .clk.b{animation-delay:.25s}
+#se .inst{position:absolute;right:12px;top:14px;padding:7px 10px;border-radius:9px;background:#262624;border:1px solid #3a3936;font-size:11px;color:#e8e6e1;display:flex;flex-direction:column;gap:6px;opacity:0;transform:translateY(6px) scale(.9);animation:se-inst 4s var(--ease) infinite}
+#se .inst b{display:block;background:var(--btn);color:#fff;border-radius:6px;padding:4px 8px;text-align:center;font-size:11px}
+@keyframes se-pick{0%,100%{transform:translateX(-24px)}20%,30%{transform:translateX(-24px) scale(.94)}}
+@keyframes se-clk{0%,10%{opacity:0;transform:scale(.4)}14%{opacity:1}30%{opacity:0;transform:scale(3)}100%{opacity:0}}
+@keyframes se-inst{0%,30%{opacity:0;transform:translateY(6px) scale(.9)}40%,88%{opacity:1;transform:none}100%{opacity:0}}
+/* visual 4: chat digitando */
+#se .chat{width:88%;padding:10px;border-radius:12px;background:#262624;border:1px solid #3a3936;font-size:12px;color:#e8e6e1}
+#se .chat .msg{white-space:nowrap;overflow:hidden;border-right:2px solid #d97757;width:0;animation:se-type 5s steps(32) infinite,se-caret .7s step-end infinite}
+#se .chat .resp{margin-top:8px;height:7px;border-radius:4px;background:#3a3936;width:0;animation:se-resp 5s ease-out infinite}
+#se .chat .resp+.resp{animation-delay:.15s}
+#se .chat .ficha{margin-top:8px;height:34px;border-radius:7px;background:linear-gradient(90deg,#0A6CFF55,#00E5FF33);opacity:0;animation:se-fic 5s var(--ease) infinite}
+@keyframes se-type{0%{width:0}45%,100%{width:100%}}
+@keyframes se-caret{50%{border-color:transparent}}
+@keyframes se-resp{0%,52%{width:0}70%,100%{width:80%}}
+@keyframes se-fic{0%,72%{opacity:0;transform:translateY(6px)}82%,100%{opacity:1;transform:none}}
+#se .ajuda{margin-top:18px}
+#se .ajuda summary{cursor:pointer;list-style:none;color:var(--mute);font-size:15px;font-weight:600;display:inline-flex;gap:8px;align-items:center}
+#se .ajuda summary::-webkit-details-marker{display:none}
+#se .ajuda summary::before{content:"+";color:var(--cyan);font-size:20px;transition:transform .2s}
+#se .ajuda[open] summary::before{transform:rotate(45deg)}
+#se .ajuda .box{margin-top:14px;padding:20px 22px;border:1px solid var(--line);border-radius:16px;background:var(--card);display:grid;gap:10px;color:#C6CEDA;font-size:15px}
+#se .ajuda b{color:#fff}
+#se kbd{font-family:var(--body);font-weight:600;font-size:12.5px;padding:1px 6px;border-radius:6px;border:1px solid #ffffff55;background:#ffffff12}
+
+/* ── carrossel (só CSS: 4 cenas de 5 s, pausa com o mouse em cima) ── */
+#se .car{position:relative;margin-top:40px;border:1px solid var(--line);border-radius:24px;background:var(--card);overflow:hidden;min-height:400px}
+#se .car:hover *{animation-play-state:paused!important}
+#se .cena{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1.1fr;align-items:center;gap:28px;padding:clamp(24px,4vw,48px);opacity:0;animation:se-cena 20s infinite}
+#se .cena:nth-child(2){animation-delay:5s}#se .cena:nth-child(3){animation-delay:10s}#se .cena:nth-child(4){animation-delay:15s}
+@keyframes se-cena{0%{opacity:0;transform:translateX(24px);visibility:visible}3%,22%{opacity:1;transform:none}25%{opacity:0;transform:translateX(-24px)}26%,100%{opacity:0;visibility:hidden}}
+#se .cena h3{font-family:var(--title);font-weight:400;text-transform:uppercase;font-size:clamp(30px,4vw,48px);line-height:.95;margin:10px 0 12px}
+#se .cena p{color:#C6CEDA;font-size:17px;max-width:26em}
+#se .palco{height:300px;border-radius:18px;background:radial-gradient(ellipse at 50% 45%,#0b2a4a,#05080d 72%);border:1px solid #ffffff10;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#se .pontos{position:absolute;left:clamp(24px,4vw,48px);bottom:22px;display:flex;gap:8px;z-index:3}
+#se .pontos i{width:40px;height:4px;border-radius:2px;background:#ffffff22;overflow:hidden;position:relative}
+#se .pontos i::after{content:"";position:absolute;inset:0;background:var(--cyan);transform:scaleX(0);transform-origin:left;animation:se-ponto 20s linear infinite}
+#se .pontos i:nth-child(2)::after{animation-delay:5s}#se .pontos i:nth-child(3)::after{animation-delay:10s}#se .pontos i:nth-child(4)::after{animation-delay:15s}
+@keyframes se-ponto{0%{transform:scaleX(0)}25%{transform:scaleX(1)}25.01%,100%{transform:scaleX(0)}}
+/* cena 1: forma de onda perde as pausas */
+#se .onda{display:flex;align-items:center;gap:3px;height:120px}
+#se .onda i{width:5px;border-radius:3px;background:var(--grad);height:var(--h);animation:se-wave 1.2s ease-in-out infinite alternate;animation-delay:calc(var(--d)*-.13s)}
+#se .onda i.pausa{background:#ffffff22;height:6px;animation:se-sai 5s var(--ease) infinite}
+@keyframes se-wave{to{transform:scaleY(.55)}}
+@keyframes se-sai{0%,30%{width:5px;margin:0;opacity:1}50%,100%{width:0;margin:0 -1.5px;opacity:0}}
+#se .tesoura{position:absolute;top:22px;right:24px;font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--cyan);text-transform:uppercase}
+/* cena 2: celular com legenda palavra por palavra */
+#se .cel{width:150px;height:266px;border-radius:24px;border:2px solid #ffffff33;background:linear-gradient(180deg,#3b2a6b,#13203d 60%,#0a0f1a);position:relative;overflow:hidden;box-shadow:0 20px 40px -14px #000}
+#se .cel::before{content:"";position:absolute;left:50%;top:38%;width:64px;height:64px;margin:-32px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#c99a7a 0 30%,#3a2a2a 31% 100%);opacity:.9}
+#se .cel .leg{position:absolute;left:10px;right:10px;bottom:46px;text-align:center;font-weight:700;font-size:14px;line-height:1.25}
+#se .cel .leg span{animation:se-pal 4s infinite;animation-delay:calc(var(--i)*.5s)}
+@keyframes se-pal{0%,10%{color:#fff}12%,24%{color:var(--cyan)}26%,100%{color:#fff}}
+#se .cel .top{position:absolute;top:22px;left:0;right:0;text-align:center;font-family:var(--title);font-size:22px;letter-spacing:.02em}
+/* cena 3: frases com interruptor */
+#se .lista{width:min(340px,90%);display:grid;gap:10px}
+#se .fr{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;background:#0f141d;border:1px solid #ffffff14;font-size:14px;color:#DCE2EA;animation:se-fr 6s var(--ease) infinite}
+#se .fr .sw{width:34px;height:20px;border-radius:10px;background:#1F73C8;flex:none;position:relative}
+#se .fr .sw::after{content:"";position:absolute;top:3px;left:17px;width:14px;height:14px;border-radius:50%;background:#fff}
+#se .fr.off{animation:se-off 6s var(--ease) infinite}
+#se .fr.off .sw{animation:se-swb 6s infinite}#se .fr.off .sw::after{animation:se-swk 6s var(--ease) infinite}
+#se .fr.mv{animation:se-mv 6s var(--ease) infinite}
+@keyframes se-off{0%,25%{opacity:1}40%,85%{opacity:.35;text-decoration:line-through}100%{opacity:1}}
+@keyframes se-swb{0%,25%{background:#1F73C8}35%,85%{background:#3a4150}100%{background:#1F73C8}}
+@keyframes se-swk{0%,25%{left:17px}35%,85%{left:3px}100%{left:17px}}
+@keyframes se-mv{0%,45%{transform:none}55%,62%{transform:translate(10px,-4px) rotate(-1.5deg);box-shadow:0 14px 26px -10px #000;border-color:#00E5FF88}75%,100%{transform:none}}
+/* cena 4: cor (antes/depois deslizando) */
+#se .cor{width:min(380px,92%);aspect-ratio:16/10;border-radius:14px;overflow:hidden;position:relative;border:1px solid #ffffff22}
+#se .cor img{width:100%;height:100%;object-fit:cover;object-position:16% 40%}
+#se .cor .depois{position:absolute;inset:0;clip-path:inset(0 0 0 50%);animation:se-wipe 5s ease-in-out infinite alternate}
+#se .cor .depois img{filter:saturate(1.45) contrast(1.15) brightness(1.06) hue-rotate(-8deg)}
+#se .cor .linha{position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:se-wl 5s ease-in-out infinite alternate}
+#se .cor .tag{position:absolute;bottom:10px;font-size:11px;font-weight:700;letter-spacing:.12em;padding:3px 8px;border-radius:6px;background:#000a}
+@keyframes se-wipe{from{clip-path:inset(0 0 0 22%)}to{clip-path:inset(0 0 0 78%)}}
+@keyframes se-wl{from{left:22%}to{left:78%}}
+#se .mais{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:22px}
+#se .mais span{padding:8px 14px;border-radius:999px;border:1px solid var(--line);font-size:14px;color:#C6CEDA;transition:border-color .2s,color .2s}
+#se .mais span:hover{border-color:var(--cyan);color:#fff}
+
+/* ── preço compacto ── */
+#se .preco{width:min(440px,100%);margin:34px auto 0;padding:30px 28px;border-radius:22px;text-align:center;position:relative;
+  background:linear-gradient(var(--card),var(--card)) padding-box,conic-gradient(from var(--a,0deg),#00E5FF,#0A6CFF,#0A1FD6,#00E5FF) border-box;border:1.5px solid transparent;animation:se-gira 6s linear infinite}
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes se-gira{to{--a:360deg}}
+#se .preco .valor{font-family:var(--title);font-size:64px;line-height:1;margin:6px 0 2px}
+#se .preco .valor small{font-family:var(--body);font-size:18px;font-weight:600;color:var(--mute);vertical-align:top;margin-right:4px}
+#se .preco ul{display:grid;gap:8px;margin:18px 0 22px;text-align:left;font-size:15px;color:#C6CEDA}
+#se .preco li{display:flex;gap:10px}#se .preco li::before{content:"✓";color:var(--cyan);font-weight:700}
+#se .preco .btn{width:100%;justify-content:center}
+
+/* perguntas */
+#se details.q{border-bottom:1px solid var(--line)}
+#se details.q summary{cursor:pointer;list-style:none;padding:18px 36px 18px 0;font-weight:600;font-size:18px;position:relative}
+#se details.q summary::-webkit-details-marker{display:none}
+#se details.q summary::after{content:"+";position:absolute;right:4px;top:12px;font-size:28px;font-weight:400;color:var(--cyan);transition:transform .25s var(--ease)}
+#se details.q[open] summary::after{transform:rotate(45deg)}
+#se details.q p{padding:0 0 20px;color:#C6CEDA;max-width:46em}
+#se footer{padding:36px 0 52px;border-top:1px solid var(--line);color:var(--mute);font-size:14px}
+#se footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+
+@media (max-width:980px){#se .passos{grid-template-columns:1fr 1fr}}
+@media (max-width:860px){
+  #se .hero-grid{grid-template-columns:1fr}
+  #se .shot{transform:none}
+  #se .car{min-height:640px}
+  #se .cena{grid-template-columns:1fr;align-content:start;gap:18px;padding-bottom:56px}
+  #se .palco{height:250px}
+}
+@media (max-width:560px){#se .passos{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){
+  #se *,#se *::before,#se *::after{animation:none!important;transition:none!important}
+  #se .cena{position:relative;opacity:1;visibility:visible}#se .car{min-height:0}#se .pontos{display:none}
+  #se .chat .msg{width:auto;border:0}#se .chat .resp{width:80%}#se .chat .ficha,#se .inst{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div id="se">
+  <div class="wrap">
+    <header class="nav">
+      <a href="https://yurisatelite.com/editor" aria-label="Satélite Editor"><svg role="img" aria-label="Satélite Editor" xmlns="http://www.w3.org/2000/svg" viewBox="4 0 478 100"><g transform="translate(4.0 0.0) scale(0.96)"><mask id="m00E5FF52" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#fff"/><circle cx="73" cy="22" r="17.5" fill="#000"/></mask><circle cx="50" cy="52" r="33" fill="none" stroke="#00E5FF" stroke-width="12" mask="url(#m00E5FF52)"/><circle cx="73" cy="22" r="12.5" fill="#00E5FF"/><path d="M42 37.5 L66 52 L42 66.5 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/></g><path fill="#FFFFFF" d="M126.65454545454546 72.47272727272727Q119.5340909090909 72.47272727272727 116.38749999999999 68.92727272727272Q113.24090909090908 65.38181818181818 113.24090909090908 57.64090909090909V52.55909090909091H123.52272727272728V59.05909090909091Q123.52272727272728 60.861363636363635 124.06931818181818 61.88068181818181Q124.61590909090908 62.9 125.975 62.9Q127.39318181818182 62.9 127.93977272727273 62.07272727272728Q128.48636363636365 61.24545454545455 128.48636363636365 59.35454545454546Q128.48636363636365 56.961363636363636 128.01363636363638 55.351136363636364Q127.5409090909091 53.74090909090909 126.37386363636364 52.27840909090909Q125.20681818181818 50.81590909090909 123.13863636363637 48.86590909090909L118.47045454545454 44.43409090909091Q113.24090909090908 39.5 113.24090909090908 33.14772727272727Q113.24090909090908 26.5 116.32840909090909 23.013636363636365Q119.4159090909091 19.52727272727273 125.26590909090909 19.52727272727273Q132.41590909090908 19.52727272727273 135.41477272727272 23.338636363636365Q138.41363636363636 27.15 138.41363636363636 34.92045454545455H127.83636363636364V31.345454545454544Q127.83636363636364 30.28181818181818 127.23068181818182 29.69090909090909Q126.625 29.1 125.5909090909091 29.1Q124.35 29.1 123.77386363636364 29.794318181818184Q123.19772727272728 30.488636363636367 123.19772727272728 31.581818181818186Q123.19772727272728 32.675000000000004 123.78863636363636 33.94545454545455Q124.37954545454545 35.21590909090909 126.12272727272727 36.87045454545455L132.12045454545455 42.63181818181818Q133.9227272727273 44.345454545454544 135.42954545454546 46.25113636363636Q136.93636363636364 48.15681818181818 137.85227272727275 50.68295454545455Q138.76818181818183 53.20909090909091 138.76818181818183 56.84318181818182Q138.76818181818183 64.17045454545455 136.06477272727273 68.3215909090909Q133.36136363636365 72.47272727272727 126.65454545454546 72.47272727272727ZM140.80681818181816 72.0 145.82954545454544 20.0H163.4681818181818L168.4022727272727 72.0H158.56363636363636L157.825 63.60909090909091H151.56136363636364L150.91136363636363 72.0ZM152.29999999999998 55.30681818181819H157.0272727272727L154.75227272727273 28.863636363636367H154.27954545454543ZM176.05454545454546 72.0V29.986363636363635H169.87954545454545V20.0H192.62954545454545V29.986363636363635H186.45454545454544V72.0ZM195.525 72.0V20.0H216.325V30.045454545454547H206.10227272727272V40.179545454545455H215.91136363636363V49.95909090909091H206.10227272727272V61.86590909090909H217.00454545454545V72.0ZM199.3068181818182 18.434090909090905V11.845454545454544L213.3409090909091 5.404545454545449V15.656818181818174ZM220.4318181818182 72.0V20.0H230.8318181818182V63.13636363636364H241.52727272727273V72.0ZM244.00909090909093 72.0V20.0H254.05454545454546V72.0ZM262.6522727272727 72.0V29.986363636363635H256.4772727272727V20.0H279.2272727272727V29.986363636363635H273.05227272727274V72.0ZM282.1227272727273 72.0V20.0H302.9227272727273V30.045454545454547H292.7V40.179545454545455H302.5090909090909V49.95909090909091H292.7V61.86590909090909H303.60227272727275V72.0Z"/><path fill="#00E5FF" d="M321.2113636363636 72.0V20.0H342.0113636363636V30.045454545454547H331.78863636363633V40.179545454545455H341.59772727272724V49.95909090909091H331.78863636363633V61.86590909090909H342.6909090909091V72.0ZM346.11818181818177 72.0V20.0H360.4181818181818Q366.03181818181815 20.0 368.86818181818177 23.117045454545455Q371.7045454545454 26.23409090909091 371.7045454545454 32.231818181818184V56.57727272727273Q371.7045454545454 63.96363636363636 369.11931818181813 67.98181818181818Q366.5340909090909 72.0 360.0636363636363 72.0ZM356.57727272727266 62.81136363636364H358.3795454545454Q361.2454545454545 62.81136363636364 361.2454545454545 60.03409090909091V33.206818181818186Q361.2454545454545 30.606818181818184 360.5511363636363 29.853409090909093Q359.85681818181814 29.1 357.7295454545454 29.1H356.57727272727266ZM375.4863636363636 72.0V20.0H385.53181818181815V72.0ZM394.1295454545454 72.0V29.986363636363635H387.9545454545454V20.0H410.7045454545454V29.986363636363635H404.5295454545454V72.0ZM426.00909090909084 72.47272727272727Q419.775 72.47272727272727 416.4806818181818 68.70568181818182Q413.1863636363636 64.93863636363636 413.1863636363636 57.81818181818182V33.11818181818182Q413.1863636363636 26.440909090909095 416.45113636363635 22.984090909090913Q419.71590909090907 19.52727272727273 426.00909090909084 19.52727272727273Q432.3022727272727 19.52727272727273 435.56704545454545 22.984090909090913Q438.83181818181816 26.440909090909095 438.83181818181816 33.11818181818182V57.81818181818182Q438.83181818181816 64.93863636363636 435.53749999999997 68.70568181818182Q432.24318181818177 72.47272727272727 426.00909090909084 72.47272727272727ZM426.09772727272724 62.9Q428.4613636363636 62.9 428.4613636363636 58.320454545454545V32.940909090909095Q428.4613636363636 29.1 426.15681818181815 29.1Q423.55681818181813 29.1 423.55681818181813 33.029545454545456V58.37954545454545Q423.55681818181813 60.80227272727273 424.14772727272725 61.851136363636364Q424.7386363636363 62.9 426.09772727272724 62.9ZM443.0272727272727 72.0V20.0H458.98181818181814Q462.9704545454545 20.0 465.0090909090909 21.817045454545454Q467.04772727272723 23.634090909090908 467.7420454545454 26.898863636363636Q468.4363636363636 30.163636363636364 468.4363636363636 34.565909090909095Q468.4363636363636 38.820454545454545 467.3579545454545 41.361363636363635Q466.2795454545454 43.90227272727273 463.2954545454545 44.877272727272725Q465.7477272727272 45.37954545454545 466.73749999999995 47.314772727272725Q467.7272727272727 49.25 467.7272727272727 52.32272727272728V72.0H457.47499999999997V51.643181818181816Q457.47499999999997 49.36818181818182 456.54431818181814 48.821590909090915Q455.6136363636363 48.275000000000006 453.5454545454545 48.275000000000006V72.0ZM453.6045454545454 39.263636363636365H456.11590909090904Q458.27272727272725 39.263636363636365 458.27272727272725 34.565909090909095Q458.27272727272725 31.522727272727273 457.79999999999995 30.577272727272728Q457.3272727272727 29.631818181818183 456.0272727272727 29.631818181818183H453.6045454545454Z"/></svg></a>
+      <a class="voltar" href="https://yurisatelite.com">← yurisatelite.com</a>
+    </header>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Edição de vídeo com I.A</p>
+        <h1 class="t">Peça. O Claude <em>edita.</em></h1>
+        <p class="lede">Ele corta o silêncio e o take repetido, põe legenda palavra por palavra e entrega o vídeo vertical pronto. Você só pede, e depois refina do seu jeito.</p>
+        <div class="baixar">
+          <a class="btn" href="https://pay.kiwify.com.br/VJrfjkF"><span>Comprar por R$ 67<small>Pagamento único</small></span></a>
+          <a class="btn sec" href="#comecar">Ver como funciona</a>
+        </div>
+        <p class="mini" style="margin-top:4px">Funciona no <b>Claude Desktop</b> (Windows)<span class="so-mac"> e Mac com chip Apple</span>. O vídeo não sai do seu computador.</p>
+      </div>
+      <figure class="shot">
+        <img src="https://yurisatelite.com/wp-content/uploads/2026/10/editor-dentro-do-claude.webp" width="1600" height="830" alt="O Satélite Editor no Claude: o pedido no chat e a ficha de edição aberta ao lado." fetchpriority="high">
+      </figure>
+    </div>
+  </div>
+
+  <!-- COMEÇAR -->
+  <section id="comecar">
+    <div class="wrap">
+      <div class="center rv">
+        <p class="eyebrow">Comece em 4 passos</p>
+        <h2 class="t">Instala uma vez. Depois é só pedir.</h2>
+      </div>
+      <ol class="passos">
+        <li class="passo rv">
+          <div class="vis"><div class="app"><i></i><i></i><i></i></div><span class="down"><svg viewBox="0 0 24 24"><path d="M11 4h2v9l3.5-3.5 1.4 1.4L12 16.8l-5.9-5.9 1.4-1.4L11 13z"/><path d="M5 18h14v2H5z"/></svg></span></div>
+          <h3>Tenha o Claude</h3>
+          <p>O aplicativo do Claude para computador. A conta grátis serve.</p>
+          <div class="acao"><a class="btn sec" href="https://claude.ai/download" target="_blank" rel="noopener">Baixar o Claude Desktop</a></div>
+        </li>
+        <li class="passo rv">
+          <div class="vis"><svg class="sym" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="none" stroke="#00E5FF" stroke-width="12"/><path d="M42 36 L66 50 L42 64 Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><g><circle cx="50" cy="17" r="12" fill="#00E5FF"/><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.2s" repeatCount="indefinite"/></g></svg></div>
+          <h3>Baixe o editor</h3>
+          <p>Um arquivo só. Se o navegador perguntar, clique em <b>Manter</b>.</p>
+          <div class="acao">
+            <a class="btn win" href="https://yurisatelite.com/downloads/satelite-editor/satelite-editor-windows.mcpb" download><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5 10.5 4.4v7H3zM11.5 4.3 21 3v8.4h-9.5zM3 12.6h7.5v7L3 18.5zM11.5 12.6H21V21l-9.5-1.3z"/></svg>Windows · 36 MB</a>
+            <a class="btn mac" href="https://yurisatelite.com/downloads/satelite-editor/satelite-editor-mac.mcpb" download style="margin-top:8px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.4 12.7c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.8 3-.8s1.8.8 3 .7c1.3 0 2.1-1.1 2.8-2.2.9-1.3 1.3-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.8zM14.1 5.9c.6-.8 1.1-1.9.9-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.8-1.3z"/></svg>Mac · chip Apple</a>
+          </div>
+        </li>
+        <li class="passo rv">
+          <div class="vis"><div class="arq"><svg class="sym" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="none" stroke="#00E5FF" stroke-width="12"/><path d="M42 36 L66 50 L42 64 Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><g><circle cx="50" cy="17" r="12" fill="#00E5FF"/><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3.2s" repeatCount="indefinite"/></g></svg></div><i class="clk"></i><i class="clk b"></i><div class="inst">Satélite Editor<b>Instalar</b></div></div>
+          <h3>Dois cliques</h3>
+          <p>O Claude abre e pede pra instalar. Na primeira vez ele pede uma <b>chave grátis</b>: <a class="link" href="https://console.groq.com/keys" target="_blank" rel="noopener">pegue a sua aqui</a>.</p>
+        </li>
+        <li class="passo rv">
+          <div class="vis"><div class="chat"><div class="msg">edita pra mim o vídeo meu-video.mp4</div><div class="resp"></div><div class="resp"></div><div class="ficha"></div></div></div>
+          <h3>Peça no chat</h3>
+          <p>Numa conversa nova, com o caminho do vídeo. A ficha abre ao lado, já editada.</p>
+        </li>
+      </ol>
+      <details class="ajuda rv">
+        <summary>Precisa de ajuda em algum passo?</summary>
+        <div class="box">
+          <p><b>O arquivo não abriu no Claude?</b> No Claude, vá em <b>Configurações → Extensões → Configurações avançadas → Instalar extensão</b> e escolha o arquivo baixado.</p>
+          <p><b>A chave grátis:</b> entre em console.groq.com/keys, crie uma conta, clique em <b>Create API Key</b> e copie a chave (começa com <b>gsk_</b>). Cole no campo <b>Chave de acesso</b>. É uma vez só.</p>
+          <p><b>O caminho do vídeo:</b> no Windows, <kbd>Shift</kbd> + botão direito no arquivo → <b>Copiar como caminho</b>.<span class="so-mac"> No Mac, selecione no Finder e aperte <kbd>Option</kbd> + <kbd>Cmd</kbd> + <kbd>C</kbd>.</span> Vídeo anexado no chat não funciona: o editor lê direto do seu disco.</p>
+          <p class="so-mac"><b>No Mac apareceu “desenvolvedor não identificado”?</b> Ajustes do Sistema → Privacidade e Segurança → <b>Abrir mesmo assim</b>.</p>
+          <p><b>Onde fica o vídeo pronto:</b> na mesma pasta do original, com “ - editado” no nome.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- O QUE FAZ -->
+  <section>
+    <div class="wrap">
+      <div class="center rv">
+        <p class="eyebrow">O que ele faz por você</p>
+        <h2 class="t">O trabalho chato, resolvido.</h2>
+      </div>
+      <div class="car rv" aria-label="O que o Satélite Editor faz">
+        <div class="cena">
+          <div><p class="eyebrow">Corte automático</p><h3>Sem pausa.<br>Sem take repetido.</h3><p>Tira os silêncios, o “peraí, de novo” e deixa só o último take de cada fala. O ritmo fica de vídeo editado.</p></div>
+          <div class="palco"><span class="tesoura">✂ cortando pausas</span><div class="onda"><i style="--h:52px;--d:0"></i><i style="--h:60px;--d:1"></i><i style="--h:35px;--d:2"></i><i style="--h:72px;--d:3"></i><i style="--h:83px;--d:4"></i><i style="--h:41px;--d:5"></i><i style="--h:33px;--d:6"></i><i style="--h:30px;--d:7"></i><i style="--h:24px;--d:8"></i><i class="pausa"></i><i class="pausa"></i><i class="pausa"></i><i style="--h:73px;--d:12"></i><i style="--h:92px;--d:13"></i><i style="--h:59px;--d:14"></i><i style="--h:29px;--d:15"></i><i style="--h:50px;--d:16"></i><i style="--h:88px;--d:17"></i><i style="--h:90px;--d:18"></i><i style="--h:68px;--d:19"></i><i style="--h:57px;--d:20"></i><i style="--h:44px;--d:21"></i><i class="pausa"></i><i class="pausa"></i><i style="--h:35px;--d:24"></i><i style="--h:55px;--d:25"></i><i style="--h:49px;--d:26"></i><i style="--h:25px;--d:27"></i><i style="--h:104px;--d:28"></i><i style="--h:55px;--d:29"></i><i style="--h:56px;--d:30"></i><i style="--h:46px;--d:31"></i><i style="--h:43px;--d:32"></i><i class="pausa"></i><i class="pausa"></i><i class="pausa"></i><i style="--h:61px;--d:36"></i><i style="--h:59px;--d:37"></i><i style="--h:102px;--d:38"></i><i style="--h:69px;--d:39"></i><i style="--h:33px;--d:40"></i><i style="--h:99px;--d:41"></i><i style="--h:65px;--d:42"></i><i style="--h:107px;--d:43"></i><i style="--h:71px;--d:44"></i><i style="--h:86px;--d:45"></i></div></div>
+        </div>
+        <div class="cena">
+          <div><p class="eyebrow">Legenda pronta</p><h3>Palavra por palavra.</h3><p>Com a fonte da sua marca, destaque na palavra certa e dentro da área segura do Reels e do TikTok.</p></div>
+          <div class="palco"><div class="cel"><div class="top">SATÉLITE</div><div class="leg"><span style="--i:0">meu</span> <span style="--i:1">nome</span> <span style="--i:2">é</span> <span style="--i:3">yuri</span> <span style="--i:4">e</span> <span style="--i:5">eu</span> <span style="--i:6">faço</span> <span style="--i:7">vídeos</span></div></div></div>
+        </div>
+        <div class="cena">
+          <div><p class="eyebrow">Você manda</p><h3>A I.A sugere.<br>Você decide.</h3><p>Liga e desliga frases, arrasta pra mudar a ordem, estica a ponta do corte. Muda na hora, sem esperar.</p></div>
+          <div class="palco"><div class="lista"><div class="fr"><span class="sw"></span>Meu nome é Yuri, eu faço vídeos…</div><div class="fr off"><span class="sw"></span>Peraí, vou começar de novo</div><div class="fr mv"><span class="sw"></span>Hoje eu vou te mostrar a luz…</div><div class="fr"><span class="sw"></span>Então se você quer melhorar…</div></div></div>
+        </div>
+        <div class="cena">
+          <div><p class="eyebrow">Acabamento</p><h3>Cor de cinema.</h3><p>Exposição, contraste, temperatura, curvas e rodas de cor como no Premiere. E um light leak quente nas emendas.</p></div>
+          <div class="palco"><div class="cor"><img src="https://yurisatelite.com/wp-content/uploads/2026/10/ficha-editor-limpa.webp" alt=""><div class="depois"><img src="https://yurisatelite.com/wp-content/uploads/2026/10/ficha-editor-limpa.webp" alt=""></div><i class="linha"></i><span class="tag" style="left:10px">ANTES</span><span class="tag" style="right:10px">DEPOIS</span></div></div>
+        </div>
+        <div class="pontos" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="mais rv"><span>Vídeo vertical 1080×1920</span><span>Título em destaque no topo</span><span>O vídeo não sai do seu computador</span><span>Avisa quando tem versão nova</span></div>
+    </div>
+  </section>
+
+  <!-- PREÇO -->
+  <section id="comprar">
+    <div class="wrap center">
+      <div class="rv"><p class="eyebrow">Compra única</p><h2 class="t">Paga uma vez. É seu.</h2></div>
+      <div class="preco rv">
+        <p class="mini">Satélite Editor</p>
+        <p class="valor"><small>R$</small>67</p>
+        <p class="mini">sem mensalidade</p>
+        <ul><li>Editor completo no seu Claude Desktop</li><li>Atualizações avisadas, você instala se quiser</li><li>Acesso e instruções no seu e-mail</li></ul>
+        <a class="btn" href="https://pay.kiwify.com.br/VJrfjkF">Comprar o Satélite Editor</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERGUNTAS -->
+  <section>
+    <div class="wrap">
+      <div class="center rv"><p class="eyebrow">Dúvidas</p><h2 class="t">O que mais perguntam.</h2></div>
+      <div style="margin:28px auto 0;max-width:820px">
+        <details class="q"><summary>Funciona no ChatGPT ou no Gemini?</summary><p><b>Não.</b> Hoje o Satélite Editor funciona <b>só no Claude Desktop</b>, o aplicativo do Claude para computador. Não funciona no ChatGPT, no Gemini, nem no Claude pelo navegador ou pelo celular. Antes de comprar, confira se você usa ou pode instalar o Claude Desktop (é grátis).</p></details>
+        <details class="q"><summary>O meu vídeo sobe para algum lugar?</summary><p>Não. O corte, a legenda e o render acontecem no seu computador. Só o áudio, comprimido, vai para um serviço de I.A que transcreve a fala e devolve o texto.</p></details>
+        <details class="q"><summary>Meu computador aguenta?</summary><p>Qualquer computador razoável dos últimos anos. O render é a parte mais pesada: um vídeo curto leva alguns minutos. Você acompanha a porcentagem e pode continuar mexendo enquanto ele roda.</p></details>
+        <details class="q"><summary>E se o corte automático errar?</summary><p>É para isso que existe a ficha. Você vê cada frase, liga e desliga, estica a ponta de um clipe, edita o texto e renderiza de novo. O automático faz a maior parte; você só refina.</p></details>
+        <details class="q so-mac"><summary>Tenho um Mac antigo, com chip Intel.</summary><p>A versão para Intel ainda não saiu. Os Macs com chip Apple (M1 a M5) já funcionam.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap"><span>Satélite Editor · uma criação de Yuri Satélite</span><span>Órbita Studio · yurisatelite.com</span></div>
+  </footer>
+</div>
+<script>
+(function(){var s=document.getElementById('se'),p=(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||'';
+if(/mac/i.test(p))s.className+=' is-mac';else if(/win/i.test(p))s.className+=' is-win';})();
+(function(){var s=document.getElementById('se');try{fetch('https://raw.githubusercontent.com/yurisatelite/satelite-editor-config/main/config.json',{cache:'no-store'}).then(function(r){return r.json()}).then(function(c){if(c&&c.mac)s.className+=' mac-on'}).catch(function(){})}catch(e){}})();
+</script>
+</body>
+</html>
